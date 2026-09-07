@@ -217,8 +217,8 @@ router.post("/sales", requireAuth, async (req, res): Promise<void> => {
       createdAt: result.sale.createdAt.toISOString(),
       items: result.items,
     });
-  } catch (err: any) {
-    if (err.message.includes("Insufficient stock") || err.message.includes("Product not found")) {
+  } catch (err: unknown) {
+    if (err instanceof Error && (err.message.includes("Insufficient stock") || err.message.includes("Product not found"))) {
       res.status(400).json({ error: err.message });
       return;
     }
@@ -230,6 +230,10 @@ router.post("/sales", requireAuth, async (req, res): Promise<void> => {
 router.get("/sales/:id", requireAuth, async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);
+  if (isNaN(id)) {
+    res.status(400).json({ error: "Invalid sale ID" });
+    return;
+  }
 
   const [sale] = await db
     .select({
@@ -314,6 +318,10 @@ router.get("/sales/:id", requireAuth, async (req, res): Promise<void> => {
 router.delete("/sales/:id", requireAuth, async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);
+  if (isNaN(id)) {
+    res.status(400).json({ error: "Invalid sale ID" });
+    return;
+  }
 
   try {
     await db.transaction(async (tx) => {
@@ -341,8 +349,8 @@ router.delete("/sales/:id", requireAuth, async (req, res): Promise<void> => {
     });
 
     res.sendStatus(204);
-  } catch (err: any) {
-    if (err.message === "Sale not found") {
+  } catch (err: unknown) {
+    if (err instanceof Error && err.message === "Sale not found") {
       res.status(404).json({ error: "Sale not found" });
       return;
     }

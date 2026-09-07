@@ -52,7 +52,7 @@ export default function SalesEntry() {
     setItems(items.filter(item => item.id !== id));
   };
 
-  const handleItemChange = (id: string, field: keyof SaleItemInput, value: any) => {
+  const handleItemChange = <K extends keyof SaleItemInput>(id: string, field: K, value: SaleItemInput[K]) => {
     setItems(items.map(item => {
       if (item.id !== id) return item;
       
@@ -287,7 +287,7 @@ export default function SalesEntry() {
                           <Input value={item.hsn || ""} onChange={e => handleItemChange(item.id, 'hsn', e.target.value)} />
                         </TableCell>
                         <TableCell>
-                          <Input type="number" min="1" value={item.quantity} onChange={e => handleItemChange(item.id, 'quantity', parseInt(e.target.value) || 0)} />
+                          <Input type="number" min="1" step="1" value={item.quantity} onChange={e => handleItemChange(item.id, 'quantity', parseInt(e.target.value, 10) || 0)} />
                         </TableCell>
                         <TableCell>
                           <Input type="number" min="0" step="0.01" value={item.unitPrice} onChange={e => handleItemChange(item.id, 'unitPrice', parseFloat(e.target.value) || 0)} />

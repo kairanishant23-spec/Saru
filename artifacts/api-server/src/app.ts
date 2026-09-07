@@ -36,13 +36,35 @@ app.use(
   }),
 );
 
+// CORS: only allow the configured frontend origin (or localhost in dev).
+// Avoid reflecting every origin with credentials=true, which allows any
+// website to make authenticated requests on behalf of the logged-in user.
+const allowedOrigin =
+  process.env.FRONTEND_URL ||
+  (process.env.NODE_ENV === "production" ? undefined : "http://localhost:5173");
+
 app.use(cors({
-  origin: true,
+  origin: allowedOrigin,
   credentials: true,
 }));
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
+
+// Require a strong session secret in production. In development we fall back
+// to a well-known placeholder, but we print a warning so it isn't missed.
+const sessionSecret = process.env.SESSION_SECRET;
+if (!sessionSecret) {
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "SESSION_SECRET environment variable is required in production but was not set.",
+    );
+  }
+  // eslint-disable-next-line no-console
+  console.warn(
+    "[WARN] SESSION_SECRET is not set. Using an insecure default — set this variable before deploying.",
+  );
+}
 
 app.use(
   session({
@@ -51,7 +73,7 @@ app.use(
       // Creates the "session" table automatically if it doesn't exist
       createTableIfMissing: true,
     }),
-    secret: process.env.SESSION_SECRET ?? "himsaru-erp-secret",
+    secret: sessionSecret ?? "himsaru-erp-dev-secret-do-not-use-in-production",
     resave: false,
     saveUninitialized: false,
     cookie: {

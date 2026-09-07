@@ -60,6 +60,10 @@ router.post("/products", requireAuth, async (req, res): Promise<void> => {
 router.get("/products/:id", requireAuth, async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);
+  if (isNaN(id)) {
+    res.status(400).json({ error: "Invalid product ID" });
+    return;
+  }
 
   const [product] = await db.select().from(productsTable).where(eq(productsTable.id, id));
 
@@ -74,6 +78,10 @@ router.get("/products/:id", requireAuth, async (req, res): Promise<void> => {
 router.put("/products/:id", requireAuth, async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);
+  if (isNaN(id)) {
+    res.status(400).json({ error: "Invalid product ID" });
+    return;
+  }
 
   const { name, sku, category, unit, purchasePrice, sellingPrice, minStock } = req.body as {
     name?: string;
@@ -115,6 +123,10 @@ router.put("/products/:id", requireAuth, async (req, res): Promise<void> => {
 router.delete("/products/:id", requireAuth, async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);
+  if (isNaN(id)) {
+    res.status(400).json({ error: "Invalid product ID" });
+    return;
+  }
 
   try {
     const [product] = await db.delete(productsTable).where(eq(productsTable.id, id)).returning();
@@ -125,8 +137,8 @@ router.delete("/products/:id", requireAuth, async (req, res): Promise<void> => {
     }
 
     res.sendStatus(204);
-  } catch (err: any) {
-    if (err.code === "23503") {
+  } catch (err: unknown) {
+    if (typeof err === "object" && err !== null && (err as { code?: string }).code === "23503") {
       res.status(400).json({ error: "This product cannot be deleted because it is referenced in past transactions." });
       return;
     }

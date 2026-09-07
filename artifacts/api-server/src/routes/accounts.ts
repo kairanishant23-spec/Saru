@@ -36,22 +36,29 @@ const DEFAULT_INCOME_CATEGORIES = [
   "Other Income",
 ];
 
+let expenseCategoriesSeeded = false;
+let incomeCategoriesSeeded = false;
+
 async function seedExpenseCategories() {
-  const existing = await db.select().from(expenseCategoriesTable);
+  if (expenseCategoriesSeeded) return;
+  const existing = await db.select({ id: expenseCategoriesTable.id }).from(expenseCategoriesTable).limit(1);
   if (existing.length === 0) {
     await db.insert(expenseCategoriesTable).values(
       DEFAULT_EXPENSE_CATEGORIES.map((name) => ({ name }))
     );
   }
+  expenseCategoriesSeeded = true;
 }
 
 async function seedIncomeCategories() {
-  const existing = await db.select().from(incomeCategoriesTable);
+  if (incomeCategoriesSeeded) return;
+  const existing = await db.select({ id: incomeCategoriesTable.id }).from(incomeCategoriesTable).limit(1);
   if (existing.length === 0) {
     await db.insert(incomeCategoriesTable).values(
       DEFAULT_INCOME_CATEGORIES.map((name) => ({ name }))
     );
   }
+  incomeCategoriesSeeded = true;
 }
 
 router.get("/accounts/expense-categories", requireAuth, async (req, res): Promise<void> => {
@@ -162,6 +169,10 @@ router.post("/accounts/expenses", requireAuth, async (req, res): Promise<void> =
 router.put("/accounts/expenses/:id", requireAuth, async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);
+  if (isNaN(id)) {
+    res.status(400).json({ error: "Invalid expense ID" });
+    return;
+  }
   const body = req.body as {
     expenseDate: string;
     categoryId?: number | null;
@@ -199,12 +210,21 @@ router.put("/accounts/expenses/:id", requireAuth, async (req, res): Promise<void
     .leftJoin(expenseCategoriesTable, eq(expensesTable.categoryId, expenseCategoriesTable.id))
     .where(eq(expensesTable.id, id));
 
+  if (!row) {
+    res.status(404).json({ error: "Expense not found" });
+    return;
+  }
+
   res.json({ ...row, amount: num(row.amount), createdAt: row.createdAt.toISOString() });
 });
 
 router.delete("/accounts/expenses/:id", requireAuth, async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);
+  if (isNaN(id)) {
+    res.status(400).json({ error: "Invalid expense ID" });
+    return;
+  }
   await db.delete(expensesTable).where(eq(expensesTable.id, id));
   res.json({ message: "Deleted" });
 });
@@ -291,6 +311,10 @@ router.post("/accounts/incomes", requireAuth, async (req, res): Promise<void> =>
 router.put("/accounts/incomes/:id", requireAuth, async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);
+  if (isNaN(id)) {
+    res.status(400).json({ error: "Invalid income ID" });
+    return;
+  }
   const body = req.body as {
     incomeDate: string;
     categoryId?: number | null;
@@ -328,12 +352,21 @@ router.put("/accounts/incomes/:id", requireAuth, async (req, res): Promise<void>
     .leftJoin(incomeCategoriesTable, eq(incomesTable.categoryId, incomeCategoriesTable.id))
     .where(eq(incomesTable.id, id));
 
+  if (!row) {
+    res.status(404).json({ error: "Income not found" });
+    return;
+  }
+
   res.json({ ...row, amount: num(row.amount), createdAt: row.createdAt.toISOString() });
 });
 
 router.delete("/accounts/incomes/:id", requireAuth, async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);
+  if (isNaN(id)) {
+    res.status(400).json({ error: "Invalid income ID" });
+    return;
+  }
   await db.delete(incomesTable).where(eq(incomesTable.id, id));
   res.json({ message: "Deleted" });
 });

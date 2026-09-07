@@ -169,8 +169,8 @@ router.post("/purchase-returns", requireAuth, async (req, res): Promise<void> =>
       createdAt: result.purchaseReturn.createdAt.toISOString(),
       items: result.items,
     });
-  } catch (err: any) {
-    if (err.message.includes("not found") || err.message.includes("Cannot return") || err.message.includes("was not part of")) {
+  } catch (err: unknown) {
+    if (err instanceof Error && (err.message.includes("not found") || err.message.includes("Cannot return") || err.message.includes("was not part of"))) {
       res.status(400).json({ error: err.message });
       return;
     }
@@ -182,6 +182,10 @@ router.post("/purchase-returns", requireAuth, async (req, res): Promise<void> =>
 router.get("/purchase-returns/:id", requireAuth, async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);
+  if (isNaN(id)) {
+    res.status(400).json({ error: "Invalid purchase return ID" });
+    return;
+  }
 
   const [pr] = await db
     .select({

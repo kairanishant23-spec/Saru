@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Edit, Trash2, Search } from "lucide-react";
 import type { Product, ProductInput } from "@workspace/api-client-react";
@@ -201,18 +202,23 @@ export default function Products() {
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="gstRate" className="text-right">GST Rate %</Label>
-                <select 
-                  id="gstRate" 
-                  value={formData.gstRate} 
-                  onChange={e => setFormData({...formData, gstRate: Number(e.target.value)})} 
-                  className="col-span-3 flex h-10 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <option value={0}>0%</option>
-                  <option value={5}>5%</option>
-                  <option value={12}>12%</option>
-                  <option value={18}>18%</option>
-                  <option value={28}>28%</option>
-                </select>
+                <div className="col-span-3">
+                  <Select 
+                    value={(formData.gstRate ?? 0).toString()} 
+                    onValueChange={v => setFormData({...formData, gstRate: Number(v)})}
+                  >
+                    <SelectTrigger id="gstRate">
+                      <SelectValue placeholder="Select GST Rate" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0">0%</SelectItem>
+                      <SelectItem value="5">5%</SelectItem>
+                      <SelectItem value="12">12%</SelectItem>
+                      <SelectItem value="18">18%</SelectItem>
+                      <SelectItem value="28">28%</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="purchasePrice" className="text-right">Purchase Price</Label>

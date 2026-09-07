@@ -89,6 +89,12 @@ router.post("/purchases", requireAuth, async (req, res): Promise<void> => {
       const insertedItems = [];
 
       for (const item of items) {
+        const [product] = await tx.select().from(productsTable).where(eq(productsTable.id, item.productId));
+        if (!product) {
+          throw new Error(`Product not found (ID: ${item.productId})`);
+        }
+        const productName = product.name;
+
         const [pi] = await tx
           .insert(purchaseItemsTable)
           .values({
@@ -99,12 +105,6 @@ router.post("/purchases", requireAuth, async (req, res): Promise<void> => {
             totalPrice: String(item.quantity * item.unitPrice),
           })
           .returning();
-
-        const [product] = await tx.select().from(productsTable).where(eq(productsTable.id, item.productId));
-        if (!product) {
-          throw new Error(`Product not found (ID: ${item.productId})`);
-        }
-        const productName = product.name;
 
         await tx
           .update(productsTable)
@@ -132,8 +132,8 @@ router.post("/purchases", requireAuth, async (req, res): Promise<void> => {
       createdAt: result.purchase.createdAt.toISOString(),
       items: result.items.map(formatItem),
     });
-  } catch (err: any) {
-    if (err.message.includes("Product not found")) {
+  } catch (err: unknown) {
+    if (err instanceof Error && err.message.includes("Product not found")) {
       res.status(400).json({ error: err.message });
       return;
     }
@@ -145,6 +145,10 @@ router.post("/purchases", requireAuth, async (req, res): Promise<void> => {
 router.get("/purchases/:id", requireAuth, async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);
+  if (isNaN(id)) {
+    res.status(400).json({ error: "Invalid purchase ID" });
+    return;
+  }
 
   const [purchase] = await db
     .select({
@@ -199,6 +203,10 @@ router.get("/purchases/:id", requireAuth, async (req, res): Promise<void> => {
 router.delete("/purchases/:id", requireAuth, async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);
+  if (isNaN(id)) {
+    res.status(400).json({ error: "Invalid purchase ID" });
+    return;
+  }
 
   try {
     await db.transaction(async (tx) => {
@@ -226,12 +234,12 @@ router.delete("/purchases/:id", requireAuth, async (req, res): Promise<void> => 
     });
 
     res.sendStatus(204);
-  } catch (err: any) {
-    if (err.message === "Purchase not found") {
+  } catch (err: unknown) {
+    if (err instanceof Error && err.message === "Purchase not found") {
       res.status(404).json({ error: "Purchase not found" });
       return;
     }
-    if (err.code === "23503") {
+    if (typeof err === "object" && err !== null && (err as { code?: string }).code === "23503") {
       res.status(400).json({ error: "This purchase cannot be deleted because it is referenced in returns or other records." });
       return;
     }

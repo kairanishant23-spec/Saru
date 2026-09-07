@@ -10,8 +10,8 @@ import { ShieldCheck, BarChart3, Package } from "lucide-react";
 import logo from "/logo.png";
 
 export default function Login() {
-  const [email, setEmail] = useState("admin@himsaru.com");
-  const [password, setPassword] = useState("admin123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -21,8 +21,7 @@ export default function Login() {
 
   useEffect(() => {
     if (user) setLocation("/dashboard");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [user, setLocation]);
 
   if (isLoading) {
     return (
@@ -176,10 +175,6 @@ export default function Login() {
               )}
             </Button>
           </form>
-
-          <div className="pt-2 border-t border-border text-center text-xs text-muted-foreground">
-            Default: admin@himsaru.com / admin123
-          </div>
         </div>
       </div>
     </div>

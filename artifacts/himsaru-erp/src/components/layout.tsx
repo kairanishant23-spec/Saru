@@ -188,8 +188,7 @@ export function Layout({ children }: LayoutProps) {
     if (!isLoading && (error || !user)) {
       setLocation("/login");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoading, error, user]);
+  }, [isLoading, error, user, setLocation]);
 
   if (isLoading) {
     return (
