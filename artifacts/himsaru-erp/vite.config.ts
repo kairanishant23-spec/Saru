@@ -58,7 +58,7 @@ export default defineConfig(async () => {
     },
     root: path.resolve(__dirname),
     build: {
-      outDir: path.resolve(__dirname, "..", "..", "dist"),
+      outDir: path.resolve(__dirname, "dist"),
       emptyOutDir: true,
       chunkSizeWarningLimit: 2000,
     },

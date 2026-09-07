@@ -3,7 +3,7 @@
   "framework": "vite",
   "installCommand": "pnpm install --no-frozen-lockfile",
   "buildCommand": "pnpm --filter @workspace/himsaru-erp build",
-  "outputDirectory": "dist",
+  "outputDirectory": "artifacts/himsaru-erp/dist",
   "rewrites": [
     {
       "source": "/api/(.*)",
