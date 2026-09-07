@@ -60,6 +60,7 @@ export default defineConfig(async () => {
     build: {
       outDir: path.resolve(__dirname, "..", "..", "dist"),
       emptyOutDir: true,
+      chunkSizeWarningLimit: 2000,
     },
     server: {
       port,
