@@ -1,8 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "vite",
   "installCommand": "pnpm install --no-frozen-lockfile",
-  "buildCommand": "pnpm --filter ./artifacts/himsaru-erp run build",
+  "buildCommand": "cd artifacts/himsaru-erp && pnpm run build",
   "outputDirectory": "artifacts/himsaru-erp/dist/public",
   "rewrites": [
     {
